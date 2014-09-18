@@ -663,7 +663,7 @@ class Collection(object):
                 if k == '$match':
                     out_collection = [doc for doc in out_collection if filter_applies(v, doc)]
                 elif k == '$group':
-                    group_func_keys = expression['$group']['_id'][1:]
+                    group_func_keys = expression['$group']['_id']
                     for group_key in reversed(group_func_keys):
                         out_collection = sorted(out_collection, key=lambda x: _resolve_key(group_key, x))
                     for field, value in iteritems(v):
