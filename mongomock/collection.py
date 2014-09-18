@@ -661,7 +661,7 @@ class Collection(object):
             group_id = expression['$group']['_id'] or "null"
 
             for k in group_id.split("$"):
-                group_func_keys.append[k]
+                func_keys.append[k]
                 if k == "null":
                     return []
             return func_keys
