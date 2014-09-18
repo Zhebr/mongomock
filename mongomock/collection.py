@@ -669,7 +669,7 @@ class Collection(object):
                     for field, value in iteritems(v):
                         if field != '_id':
                             for func, key in iteritems(value):
-                                if func == "$sum" or "$avg":
+                                if func in ["$sum", "$avg", "$min", "$max"]:
                                     for group_key in group_func_keys:
                                         for ret_value, group in itertools.groupby(out_collection, lambda item: item[group_key]):
                                             doc_dict = {}
@@ -680,11 +680,15 @@ class Collection(object):
                                                 for doc in group_list:
                                                     current_val = sum([current_val, doc[field]])
                                                 doc_dict[field] = current_val
-                                            else:
+                                            elif func == "$avg":
                                                 for doc in group_list:
                                                     current_val = sum([current_val, doc[field]])
                                                     avg = current_val / len(group_list)
                                                 doc_dict[field] = current_val
+                                            elif func == "$max":
+                                                doc_dict[field] = max(doc[field] for doc in group_list)
+                                            elif func == "$min":
+                                                doc_dict[field] = min(doc[field] for doc in group_list)
                                             grouped_collection.append(doc_dict)
                                 else:
                                     if func in group_operators:
