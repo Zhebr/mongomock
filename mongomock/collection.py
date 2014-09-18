@@ -681,12 +681,15 @@ class Collection(object):
                         if field != '_id':
                             for func, key in iteritems(value):
                                 if func in ["$sum", "$avg", "$min", "$max"]:
+                                    extracted_key = key.split("$").pop()
+
                                     for group_key in group_func_keys:
                                         for ret_value, group in itertools.groupby(out_collection, lambda item: item[group_key]):
                                             doc_dict = {}
                                             group_list = ([x for x in group])
                                             doc_dict['_id'] = ret_value
                                             current_val = 0
+
                                             if func == "$sum":
                                                 for doc in group_list:
                                                     current_val = sum([current_val, doc[field]])
@@ -697,15 +700,20 @@ class Collection(object):
                                                     avg = current_val / len(group_list)
                                                 doc_dict[field] = current_val
                                             elif func == "$max":
-                                                doc_dict[field] = max(doc[field] for doc in group_list)
+                                                doc_dict[field] = max(doc[extracted_key] for doc in group_list)
                                             elif func == "$min":
-                                                doc_dict[field] = min(doc[field] for doc in group_list)
-                                            grouped_collection.append(doc_dict)
+                                                doc_dict[field] = min(doc[extracted_key] for doc in group_list)
+
+                                            if grouped_collection:
+                                                grouped_collection[0].update(doc_dict)
+                                            else:
+                                                grouped_collection.append(doc_dict)
                                 else:
                                     if func in group_operators:
                                         raise NotImplementedError(
-                                            "Although %s is a valid group operator for the aggregation pipeline, "
-                                            "%s is currently not implemented in Mongomock."
+                                            "Although %s is a valid group operator"
+                                            " for the aggregation pipeline,"
+                                            " %s is currently not implemented in Mongomock."
                                         )
                                     else:
                                         raise NotImplementedError(
@@ -728,16 +736,18 @@ class Collection(object):
                 else:
                     if k in pipeline_operators:
                         raise NotImplementedError(
-                            "Although %s is a valid operator for the aggregation pipeline, "
-                            "%s is currently not implemented in Mongomock."
+                            "Although %s is a valid operator"
+                            " for the aggregation pipeline,"
+                            " %s is currently not implemented in Mongomock."
                         )
                     else:
                         raise NotImplementedError(
-                            "%s is not a valid operator for the aggregation pipeline. "
-                            "See http://docs.mongodb.org/manual/meta/aggregation-quick-reference/ "
-                            "for a complete list of valid operators."
+                            "%s is not a valid operator for the aggregation"
+                            " pipeline."
+                            " See http://docs.mongodb.org/manual/meta/aggregation-quick-reference/"
+                            " for a complete list of valid operators."
                         )
-        return {'ok':1.0, 'result':out_collection}
+        return {'ok': 1.0, 'result': out_collection}
 
 def _resolve_key(key, doc):
     return next(iter(iter_key_candidates(key, doc)), NOTHING)
