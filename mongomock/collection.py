@@ -656,6 +656,16 @@ class Collection(object):
         date_operators =           ['$dayOfYear','$dayOfMonth','$dayOfWeek','$year','$month','$week','$hour','$minute','$second','$millisecond']
         conditional_operators =    ['$cond', '$ifNull']
 
+        def _group_func_keys(expression):
+            func_keys = []
+            group_id = expression['$group']['_id'] or "null"
+
+            for k in group_id.split("$"):
+                group_func_keys.append[k]
+                if k == "null":
+                    return []
+            return func_keys
+
         out_collection = [doc for doc in self.find()]
         grouped_collection = []
         for expression in pipeline:
@@ -663,7 +673,8 @@ class Collection(object):
                 if k == '$match':
                     out_collection = [doc for doc in out_collection if filter_applies(v, doc)]
                 elif k == '$group':
-                    group_func_keys = expression['$group']['_id']
+                    group_func_keys = _group_func_keys(expression)
+
                     for group_key in reversed(group_func_keys):
                         out_collection = sorted(out_collection, key=lambda x: _resolve_key(group_key, x))
                     for field, value in iteritems(v):
